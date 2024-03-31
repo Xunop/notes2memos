@@ -2,7 +2,7 @@
 
 This is a script that push reading notes to my memos web app. It is a simple script that reads some text files and push to my memos web app.
 
-My memos web app is [memos](https://github.com/usememos/memos)
+The memos web app I use is [memos](https://github.com/usememos/memos).
 
 ## How to use
 
