@@ -63,7 +63,7 @@ send_to_memo() {
 # WARN: The json format should be escaped
 format_excerpt() {
     echo "INFO: Start to format excerpt content"
-    content=$(cat "${temp_path}/new-excerpt.txt")
+    content=$(cat "${temp_path}/new-excerpt.txt" | sed 's/\r//g')
     book=$(cat "${temp_path}/book-name.txt" | head -n 1)
     book="${book##*\[摘抄\]}"
     book="${book%_*}"
@@ -93,7 +93,7 @@ get_excerpt_content() {
     # So first I get the line number of the pattern
     # Then I can get the excerpt content between two line numbers:
     # sed -n "start_line_number, end_line_numberp" file
-    local pattern="^([0-9]{4}年[0-9]{2}月[0-9]{2}日 [0-9]{2}:[0-9]{2}:[0-9]{2}).*第([0-9]+)页$"
+    local pattern="^([0-9]{4}年[0-9]{2}月[0-9]{2}日 [0-9]{2}:[0-9]{2}:[0-9]{2}).*第([0-9]+)页"
     local file="${temp_path}/new-content.txt"
     local delimiter=$(grep -n -E "${pattern}" "$file")
     local line_numbers=$(awk -F: '{print $1}' <<< "$delimiter")
@@ -150,7 +150,7 @@ git_status=$(git status --porcelain "${excerpt_path}")
 if [[ $git_status == *"??"* ]]; then
     echo "INFO: New article excerpt found"
     # Get new article excerpt file
-    git status --porcelain "${excerpt_path}" | grep '^??' | sed 's/^?? //g' > "${temp_path}/book-name.txt"
+    git status -u --porcelain "${excerpt_path}" | grep '^??' | sed 's/^?? //g' > "${temp_path}/book-name.txt"
     # Get added content from new excerpt
     while read file; do
         file=$(echo "$file" | sed 's/"//g')
