@@ -102,6 +102,8 @@ get_excerpt_content() {
     local length=${#line_numbers[@]}
     local title=""
     # echo "length: $length"
+    # Clear the last excerpt
+    echo '' > "${temp_path}/new-excerpt.txt"
     for ((i = 0; i < $length; i++)); do
         line_number=${line_numbers[i]}
         line=$(sed -n "${line_number}p" "$file")
@@ -117,8 +119,6 @@ get_excerpt_content() {
         fi
 
         echo "INFO: Start to get excerpt content from line $line_number"
-        # Clear the last excerpt
-        echo '' > "${temp_path}/new-excerpt.txt"
         # If it is the last line, then get the content from the current line to the end of the file
         if [[ $i -eq $((length - 1)) ]]; then
             content=$(sed -n "$((line_number + 1)), \$p" "$file" | tr '\n' ' ' | sed 's/ \+/ /g')
