@@ -38,7 +38,7 @@ trap 'on_error' ERR
 
 send_to_memo() {
     echo "Enter send_to_memo"
-    format_excerpt
+    format_excerpt "$1"
     [[ ! -e "${temp_path}/new-excerpt.txt" ]] && clean && return
     content=$(cat "${temp_path}/new-excerpt.txt")
     # echo "----------"
@@ -59,12 +59,20 @@ send_to_memo() {
     echo "INFO: Finish to send excerpt to memos"
 }
 
+commit() {
+    echo "INFO: Start to commit"
+    git add "${excerpt_path}/${1}"
+    git commit -m "Update article excerpt"
+    # git push
+    echo "INFO: Finish to commit"
+}
+
 # Format excerpt content
 # WARN: The json format should be escaped
 format_excerpt() {
     echo "INFO: Start to format excerpt content"
     content=$(cat "${temp_path}/new-excerpt.txt" | sed 's/\r//g')
-    book=$(cat "${temp_path}/book-name.txt" | head -n 1)
+    book="$1"
     book="${book##*\[摘抄\]}"
     book="${book%_*}"
     book=$(tr ' ' '-' <<< "$book")
@@ -110,7 +118,7 @@ get_excerpt_content() {
         if [[ $line =~ $pattern ]]; then
             date="${BASH_REMATCH[1]}"
             page="${BASH_REMATCH[2]}"
-            book=$(cat "${temp_path}/book-name.txt" | head -n 1)
+            book="$1"
             book="${book##*\[摘抄\]}"
             book="${book%_*}"
             # echo "DEBUG: $book"
@@ -130,7 +138,12 @@ get_excerpt_content() {
         content=$(sed -n "$((line_number + 1)), $((next_line_number - 1))p" "$file" | tr '\n' ' ' | sed 's/ \+/ /g')
         echo "${title}${content}\n" >> "${temp_path}/new-excerpt.txt"
     done
+    echo "INFO: Finish to get excerpt content"
 }
+
+######################
+# Main
+######################
 
 # Get current path
 current_path="$(cd `dirname $0`; pwd)"
@@ -142,10 +155,9 @@ echo "INFO: current_path: ${current_path}"
 excerpt_path="${current_path}/摘抄"
 temp_path="${current_path}/temp"
 
-init
-
 echo "INFO: Start to sync article excerpt to memos"
 
+init
 git_status=$(git status --porcelain "${excerpt_path}")
 if [[ $git_status == *"??"* ]]; then
     echo "INFO: New article excerpt found"
@@ -153,22 +165,45 @@ if [[ $git_status == *"??"* ]]; then
     git status -u --porcelain "${excerpt_path}" | grep '^??' | sed 's/^?? //g' > "${temp_path}/book-name.txt"
     # Get added content from new excerpt
     while read file; do
+        echo "INFO: Handle new excerpt file: $file"
         file=$(echo "$file" | sed 's/"//g')
         # set -x
         cat "${file}" > "${temp_path}/new-content.txt"
         # find . -name "${file}" -exec cat {} \; > "${temp_path}/new-content.txt"
         # set +x
+        file=$(basename "$file")
+        get_excerpt_content "$file"
+        send_to_memo "$file"
+        commit "$file"
     done < "${temp_path}/book-name.txt"
-    get_excerpt_content
-    send_to_memo
 fi
 
+init
 if [[ $git_status == *"M"* ]]; then
     echo "INFO: Start to sync modified article excerpt to memos"
     # Get modified article excerpt
-    git status --porcelain "${excerpt_path}" | grep '^ M' | sed 's/^ M //g' > "${temp_path}/book-name.txt"
+    m_file=$(git status --porcelain "${excerpt_path}" | grep '^ M' | sed 's/^ M //g')
+    echo "INFO: Modified excerpt file:"
+    echo '----------'
+    echo "$m_file"
+    echo '----------'
+    echo "$m_file" > "${temp_path}/book-name.txt"
+    while read file; do
+        echo "INFO: Handle modified excerpt file: $file"
+        file=$(echo "$file" | sed 's/"//g')
+        diff=$(git diff --ignore-cr-at-eol "${current_path}/${file}" | grep '^+' | grep -v '^+++' | grep -v '^+ ' | grep -v '^+$' | sed 's/^+//g')
+        # echo '----------'
+        # echo "INFO: Modified excerpt content:"
+        # echo "$diff"
+        # echo '----------'
+        echo "$diff" > "${temp_path}/new-content.txt"
+        file=$(basename "$file")
+        get_excerpt_content "$file"
+        send_to_memo "$file"
+        commit "$file"
+    done < "${temp_path}/book-name.txt"
     # Get added content from modified excerpt
-    git diff --ignore-cr-at-eol "${excerpt_path}" | grep '^+' | grep -v '^+++' | grep -v '^+ ' | grep -v '^+$' | sed 's/^+//g' > "${temp_path}/new-content.txt"
-    get_excerpt_content
-    send_to_memo
+    # git diff --ignore-cr-at-eol "${excerpt_path}" | grep '^+' | grep -v '^+++' | grep -v '^+ ' | grep -v '^+$' | sed 's/^+//g' > "${temp_path}/new-content.txt"
+    # get_excerpt_content
+    # send_to_memo
 fi
