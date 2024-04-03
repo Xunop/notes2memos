@@ -51,12 +51,26 @@ send_to_memo() {
         "visibility": "PUBLIC"
     }'
     data="${data//@CONTENT/$content}"
-    curl --location --request POST "${WEB_URL}" \
+    # echo "$data"
+    reponse=$(curl -s --location --request POST "${WEB_URL}" \
     --header "Authorization: Bearer ${ACCESS_TOKEN}" \
     --header 'Content-Type: application/json' \
     --data-raw "${data}" \
-    --connect-timeout 25
+    --connect-timeout 25)
+    reponse=$(echo "$reponse" | jq)
+
+    # echo "$reponse"
+    local memo=$(jq .memo <<< "$reponse")
+    # Get the memo, if memo is null, then report error and return
+    if [[ -z "$memo" || "$memo" == "null" ]]; then
+        echo "ERROR: Failed to send excerpt to memos"
+        echo "ERROR: Message: $(jq .message <<< "$reponse")"
+        [[ ! -e "./error_reponse.log" ]] && touch "./error_reponse.log"
+        echo "ERROR: Message: $(jq .message <<< "$reponse")" >> "./error_reponse.log"
+        return
+    fi
     echo "INFO: Finish to send excerpt to memos"
+    echo "INFO: Memo id: $(jq .memo.id <<< "$reponse")"
 }
 
 commit() {
@@ -71,7 +85,7 @@ commit() {
 # WARN: The json format should be escaped
 format_excerpt() {
     echo "INFO: Start to format excerpt content"
-    content=$(cat "${temp_path}/new-excerpt.txt" | sed 's/\r//g')
+    content=$(cat "${temp_path}/new-excerpt.txt" | sed 's/\r//g' | sed 's/\"/\\\"/g')
     book="$1"
     book="${book##*\[摘抄\]}"
     book="${book%_*}"
@@ -174,7 +188,7 @@ if [[ $git_status == *"??"* ]]; then
         file=$(basename "$file")
         get_excerpt_content "$file"
         send_to_memo "$file"
-        commit "$file"
+        # commit "$file"
     done < "${temp_path}/book-name.txt"
 fi
 
@@ -200,7 +214,7 @@ if [[ $git_status == *"M"* ]]; then
         file=$(basename "$file")
         get_excerpt_content "$file"
         send_to_memo "$file"
-        commit "$file"
+        # commit "$file"
     done < "${temp_path}/book-name.txt"
     # Get added content from modified excerpt
     # git diff --ignore-cr-at-eol "${excerpt_path}" | grep '^+' | grep -v '^+++' | grep -v '^+ ' | grep -v '^+$' | sed 's/^+//g' > "${temp_path}/new-content.txt"
