@@ -196,7 +196,7 @@ if [[ $git_status == *"??"* ]]; then
         file=$(basename "$file")
         get_excerpt_content "$file"
         send_to_memo "$file"
-        # commit "$file"
+        commit "$file"
     done < "${temp_path}/book-name.txt"
 fi
 
