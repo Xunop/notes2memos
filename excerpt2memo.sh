@@ -93,7 +93,7 @@ format_excerpt() {
     echo "INFO: Current book: $book"
     # Add tags
     # Use book name as the tag
-    content="#$book\n$content"
+    content="#阅读/$book\n$content"
     [[ ! "$content" =~ "#阅读/摘录" ]] && content="#阅读/摘录 $content"
     echo "$content" | sed -z 's/\n/\\n/g' > "${temp_path}/new-excerpt.txt"
     echo "INFO: Finish to format excerpt content"
