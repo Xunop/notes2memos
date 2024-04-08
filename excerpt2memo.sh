@@ -155,6 +155,11 @@ get_excerpt_content() {
     echo "INFO: Finish to get excerpt content"
 }
 
+# Clears the nasty BOM
+clear_bom() {
+    find "${excerpt_path}" -type f -exec sed -i '1s/^\xEF\xBB\xBF//' {} \;
+}
+
 ######################
 # Main
 ######################
@@ -168,6 +173,9 @@ echo "INFO: current_path: ${current_path}"
 # notes_path="${current_path}/笔记"
 excerpt_path="${current_path}/摘抄"
 temp_path="${current_path}/temp"
+
+# Clear BOM prevent from the grep command can't match the pattern
+clear_bom
 
 echo "INFO: Start to sync article excerpt to memos"
 
