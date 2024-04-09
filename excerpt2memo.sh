@@ -7,8 +7,12 @@
 
 on_error() {
     echo "Error: $1"
-    echo "Error: $1" > error.log
+    # echo "Error: $1" > error.log
     # clean
+    # Print current time
+    echo "-------END--------"
+    echo "Current time: $(date)"
+    echo "-------END--------"
     exit 1
 }
 
