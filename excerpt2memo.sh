@@ -222,7 +222,7 @@ if [[ $git_status == *"M"* ]]; then
         file=$(basename "$file")
         get_excerpt_content "$file"
         send_to_memo "$file"
-        # commit "$file"
+        commit "$file"
     done < "${temp_path}/book-name.txt"
     # Get added content from modified excerpt
     # git diff --ignore-cr-at-eol "${excerpt_path}" | grep '^+' | grep -v '^+++' | grep -v '^+ ' | grep -v '^+$' | sed 's/^+//g' > "${temp_path}/new-content.txt"
