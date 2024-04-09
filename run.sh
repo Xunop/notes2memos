@@ -5,7 +5,7 @@
 current_path="$(cd `dirname $0`; pwd)"
 echo "INFO: current_path: ${current_path}"
 pushd "${current_path}/notes2memos"
-git pull origin main
+git pull --quiet origin main
 if [ $? -eq 0 ]; then
     echo "Successfully pulled latest code."
     echo "Last commit message:"
@@ -14,4 +14,4 @@ else
     echo "Failed to pull latest code. Exiting."
 fi
 popd
-exec bash excerpt2memo.sh
+exec bash "${current_path}/excerpt2memo.sh"

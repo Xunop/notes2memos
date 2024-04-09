@@ -168,6 +168,9 @@ clear_bom() {
 # Main
 ######################
 
+echo "-------START--------"
+echo "Current time: $(date)"
+echo "-------START--------"
 # Get current path
 current_path="$(cd `dirname $0`; pwd)"
 echo "INFO: current_path: ${current_path}"
@@ -228,8 +231,7 @@ if [[ $git_status == *"M"* ]]; then
         send_to_memo "$file"
         commit "$file"
     done < "${temp_path}/book-name.txt"
-    # Get added content from modified excerpt
-    # git diff --ignore-cr-at-eol "${excerpt_path}" | grep '^+' | grep -v '^+++' | grep -v '^+ ' | grep -v '^+$' | sed 's/^+//g' > "${temp_path}/new-content.txt"
-    # get_excerpt_content
-    # send_to_memo
 fi
+echo "-------END--------"
+echo "Current time: $(date)"
+echo "-------END--------"
