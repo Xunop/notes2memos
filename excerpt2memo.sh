@@ -93,6 +93,9 @@ format_excerpt() {
     book="$1"
     book="${book##*\[摘抄\]}"
     book="${book%_*}"
+    # bash strip
+    book="${book#"${book%%[![:space:]]*}"}"
+    book="${book%"${book##*[![:space:]]}"}"
     book=$(tr ' ' '-' <<< "$book")
     echo "INFO: Current book: $book"
     # Add tags
