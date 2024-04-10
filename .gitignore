@@ -1,3 +1,6 @@
 access-token
 web-url
 test/*
+temp/*
+*.log
+log/*

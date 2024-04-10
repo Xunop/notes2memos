@@ -167,6 +167,13 @@ clear_bom() {
     find "${excerpt_path}" -type f -exec sed -i '1s/^\xEF\xBB\xBF//' {} \;
 }
 
+# Copy source file to another directory
+copy_source_file() {
+    [[ ! -e "${excerpt_path}" ]] && mkdir "${excerpt_path}"
+    # Detemine whether the dir has been tracked by git
+    cp -rf "${source_path}"/* "${excerpt_path}"
+}
+
 ######################
 # Main
 ######################
@@ -181,9 +188,13 @@ echo "INFO: current_path: ${current_path}"
 # set -x
 # Get article notes path
 # notes_path="${current_path}/笔记"
-excerpt_path="${current_path}/摘抄"
+source_path="${current_path}/摘抄"
 temp_path="${current_path}/temp"
+# This dir store the formatted excerpt from the source dir(摘抄)
+excerpt_path="${current_path}/formatted-excerpt"
 
+# Copy source file to excerpt_path
+copy_source_file
 # Clear BOM prevent from the grep command can't match the pattern
 clear_bom
 
