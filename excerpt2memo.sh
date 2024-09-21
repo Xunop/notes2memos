@@ -175,6 +175,7 @@ copy_source_file() {
 }
 
 prepare() {
+    current_dir="${current_path}"
     gitignore_file="${current_dir}/.gitignore"
     email="example@mail.com"
     username="xun"
