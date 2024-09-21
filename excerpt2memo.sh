@@ -174,6 +174,40 @@ copy_source_file() {
     cp -rf "${source_path}"/* "${excerpt_path}"
 }
 
+prepare() {
+    gitignore_file="${current_dir}/.gitignore"
+    email="example@mail.com"
+    username="xun"
+
+    # Check if git repository exists
+    if [[ ! -d "${current_dir}/.git" ]]; then
+        echo "INFO: Initializing a new git repository in ${current_dir}"
+        git init "${current_dir}"
+        git -C "${current_dir}" config user.email "${email}"
+        git -C "${current_dir}" config user.name "${username}"
+
+        # Initialize .gitignore file if not exists
+        if [[ ! -f "${gitignore_file}" ]]; then
+            echo "INFO: Creating .gitignore file"
+            touch "${gitignore_file}"
+        fi
+
+        # Add patterns to .gitignore if they are not already present
+        patterns=("*.log" "temp/*" "access-token" "web-url" "note2memos" "$(basename "${source_path}")")
+
+        for pattern in "${patterns[@]}"; do
+            if ! grep -q "^${pattern}$" "${gitignore_file}"; then
+                echo "${pattern}" >> "${gitignore_file}"
+                echo "INFO: Added ${pattern} to .gitignore"
+            else
+                echo "INFO: Pattern ${pattern} already exists in .gitignore"
+            fi
+        done
+    else
+        echo "INFO: Git repository already exists in ${current_dir}"
+    fi
+}
+
 ######################
 # Main
 ######################
@@ -197,6 +231,9 @@ excerpt_path="${current_path}/formatted-excerpt"
 copy_source_file
 # Clear BOM prevent from the grep command can't match the pattern
 clear_bom
+
+# Prepare git repository
+prepare
 
 echo "INFO: Start to sync article excerpt to memos"
 
